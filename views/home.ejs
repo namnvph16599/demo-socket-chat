@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="socket.io/socket.io.js">
+    </script>
+    <style>
+        #chatform {
+            /* display: none; */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="login">
+            <h3>Login</h3>
+            <input type="text" placeholder="your name" id="username">
+            <br />
+            <button id="btn-submid" type="submit">Login</button>
+        </div>
+        <div id="chatform">
+            <diV class="left">
+                <h1>User online</h1>
+                <ul id="user-online"></ul>
+            </diV>
+            <diV class="right">
+                <ul id="ul-message"></ul>
+                <input type="text" placeholder="message" id="message">
+                <br />
+                <button id="btn-submid-message" type="submit">Send</button>
+            </diV>
+        </div>
+    </div>
+    <script>
+        const socket = io('http://localhost:3000/')
+        socket.on('signup-failed', () => {
+            alert('Signup failed username is exist')
+        })
+        socket.on("signup-success", (name) => {
+            alert(`'Welcome ${name}`)
+            const chatform = document.getElementById('chatform')
+            const formLogin = document.getElementById('login')
+            formLogin.style.display = 'none'
+            chatform.style.display = 'flex'
+            chatform.style.justifyContent = 'left'
+        })
+        socket.on('user-online', (userOnline) => {
+            const userOnlineBox = document.getElementById('user-online')
+            userOnlineBox.innerHTML = ""
+            console.log('userOnline', userOnline);
+            userOnline.forEach(function (item) {
+                const li = document.createElement("li");
+                li.innerHTML = `<div>${item}</div>` + "<br/>"
+                userOnlineBox.append(li);
+            })
+        })
+
+        //input messages
+        socket.on('get-messges', (messages) => {
+            const messageBox = document.getElementById('ul-message')
+            messageBox.innerHTML = ""
+            console.log('cliet', messages);
+            messages.forEach(function (item) {
+                const li = document.createElement("li");
+                li.innerHTML = `<div>${item.name} : ${item.message}</div>` + "<br/>"
+                messageBox.append(li);
+            })
+        })
+
+        //signup
+        const btnSubmit = document.getElementById('btn-submid')
+        btnSubmit.addEventListener('click', () => {
+            const username = document.getElementById('username').value
+            socket.emit('send-username', username)
+        })
+        //send message 
+        const btnSendMessage = document.getElementById('btn-submid-message')
+        btnSendMessage.addEventListener('click', () => {
+            const message = document.getElementById('message').value
+            socket.emit('send-message', message)
+        })
+    </script>
+</body>
+
+</html>
